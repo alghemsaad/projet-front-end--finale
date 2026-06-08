@@ -4,13 +4,13 @@ import {
     CalendarDays,
     Users,
     QrCode,
-    HelpCircle,
     LogOut,
     GraduationCap,
     Plus
 } from 'lucide-react';
 import { useScanner } from '../../context/ScannerContext';
 import { useAuth } from '../../context/useAuth';
+import ScannerModal from '../ScannerModal';
 
 export default function OrganizerLayout() {
     const { openScanner } = useScanner();
@@ -26,7 +26,6 @@ export default function OrganizerLayout() {
         { name: 'Dashboard', icon: LayoutDashboard, path: '/organizer' },
         { name: 'Event Manager', icon: CalendarDays, path: '/organizer/events' },
         { name: 'Participants', icon: Users, path: '/organizer/participants' },
-        { name: 'QR Check-in', icon: QrCode, onClick: (e) => { e.preventDefault(); openScanner(); } },
     ];
 
     return (
@@ -65,7 +64,17 @@ export default function OrganizerLayout() {
                             <span>{item.name}</span>
                         </NavLink>
                     ))}
+                    {/* QR Check-in Scanner Button */}
+                        <button
+                            onClick={() => openScanner()}
+                            className="flex w-full items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+                        >
+                            <QrCode size={20} />
+                            <span>QR Check-in</span>
+                        </button>
                 </nav>
+
+
 
                 {/* Bouton Create Event + Liens du bas */}
                 <div className="p-4 space-y-4 border-t border-gray-200 mt-auto">
@@ -76,10 +85,6 @@ export default function OrganizerLayout() {
                     </Link>
 
                     <div className="space-y-1">
-                        <button className="flex w-full items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900 rounded-xl transition-all font-medium text-sm">
-                            <HelpCircle size={18} />
-                            <span>Help Center</span>
-                        </button>
                         <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all font-medium text-sm">
                             <LogOut size={18} />
                             <span>Logout</span>
@@ -92,6 +97,9 @@ export default function OrganizerLayout() {
             <main className="flex-1 overflow-y-auto bg-gray-50 border-l border-gray-200 shadow-sm rounded-tl-3xl">
                 <Outlet />
             </main>
+
+            {/* QR Scanner Modal */}
+            <ScannerModal />
 
         </div>
     );

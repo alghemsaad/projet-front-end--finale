@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, QrCode, XCircle, Lock, X, Download } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { registrationsAPI } from '../services/api';
 
 export default function StudentDashboard() {
@@ -8,13 +9,6 @@ export default function StudentDashboard() {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const [qrPattern] = useState(() =>
-        [...Array(400)].map((_, i) => ({
-            id: i,
-            filled: Math.random() > 0.5,
-        }))
-    );
 
     useEffect(() => {
         const fetchRegistrations = async () => {
@@ -126,11 +120,13 @@ export default function StudentDashboard() {
                         </div>
                         <div className="p-8 flex flex-col items-center gap-6">
                             <div className="p-4 bg-white border-2 border-gray-100 rounded-2xl shadow-sm">
-                                <div className="w-48 h-48 bg-white flex flex-wrap gap-0.5 overflow-hidden">
-                                    {qrPattern.map((cell) => (
-                                        <div key={cell.id} className={`w-2 h-2 rounded-[1px] ${cell.filled ? 'bg-gray-900' : 'bg-transparent'}`}></div>
-                                    ))}
-                                </div>
+                                <QRCodeSVG
+                                    value={JSON.stringify({ registrationId: selectedTicket.id, ticketId: selectedTicket.ticketId })}
+                                    size={192}
+                                    level="M"
+                                    bgColor="#FFFFFF"
+                                    fgColor="#111827"
+                                />
                             </div>
                             <div className="text-center">
                                 <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Ticket ID</p>

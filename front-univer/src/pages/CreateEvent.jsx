@@ -25,6 +25,11 @@ export default function CreateEvent() {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                setErrors({ ...errors, image: 'Image must be less than 5MB' });
+                return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result);
@@ -63,12 +68,18 @@ export default function CreateEvent() {
                 status,
                 locationType,
                 capacity: form.capacity ? parseInt(form.capacity) : 0,
-                imageUrl: imagePreview || '',
                 registrationDeadline: form.registrationDeadline || undefined,
             };
+            
+            // Only include imageUrl if it's provided and not too large
+            if (imagePreview) {
+                payload.imageUrl = imagePreview;
+            }
+            
             await eventsAPI.create(payload);
             navigate('/organizer/events');
         } catch (err) {
+            console.error('Create event error:', err);
             const serverErrors = err.response?.data?.message;
             if (Array.isArray(serverErrors)) {
                 setErrors(prev => ({ ...prev, server: serverErrors.join(', ') }));
@@ -153,10 +164,20 @@ export default function CreateEvent() {
                     <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
                         <ImageIcon className="text-blue-600" size={24} />
                         <h3 className="text-xl font-bold text-gray-900">Event Banner</h3>
+                        <span className="text-xs text-gray-500 ml-auto">(Optional - Max 5MB)</span>
                     </div>
                     <div className="relative group h-64 w-full border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all overflow-hidden">
                         {imagePreview ? (
-                            <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                            <>
+                                <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                                <button 
+                                    type="button"
+                                    onClick={() => setImagePreview(null)}
+                                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors z-10"
+                                >
+                                    ✕
+                                </button>
+                            </>
                         ) : (
                             <div className="text-center space-y-3 p-6">
                                 <UploadCloud className="mx-auto text-gray-400" size={48} />
@@ -168,6 +189,8 @@ export default function CreateEvent() {
                         )}
                         <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                     </div>
+                    {errors.image && <p className="text-xs text-red-500 font-medium mt-2">{errors.image}</p>}
+                    <p className="text-xs text-gray-500 mt-2">💡 Tip: You can skip this step. Events without images show a stylish placeholder.</p>
                 </section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

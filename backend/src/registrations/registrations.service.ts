@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Registration } from '../entities/registration.entity';
 import { Event } from '../entities/event.entity';
-import { CreateRegistrationDto } from './registrations.dto';
+import { CreateRegistrationDto, QRScanDto } from './registrations.dto';
 
 @Injectable()
 export class RegistrationsService {
@@ -111,5 +111,53 @@ export class RegistrationsService {
     reg.checkedInAt = new Date();
     reg.status = 'validated';
     return this.registrationRepository.save(reg);
+  }
+
+  async scanAndRegister(dto: QRScanDto): Promise<Registration> {
+    // Check if already registered with this email for this event
+    const existing = await this.registrationRepository.findOne({
+      where: { email: dto.email, eventId: dto.eventId },
+      relations: { event: true },
+    });
+
+    if (existing) {
+      // Already registered, just check in
+      existing.checkedIn = true;
+      existing.checkedInAt = new Date();
+      existing.status = 'validated';
+      return this.registrationRepository.save(existing);
+    }
+
+    // Not registered, create new registration and check in immediately
+    const event = await this.eventRepository.findOne({
+      where: { id: dto.eventId },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+
+    // Check capacity
+    if (event.capacity > 0 && event.registeredCount >= event.capacity) {
+      throw new BadRequestException('Event is at full capacity');
+    }
+
+    const registration = this.registrationRepository.create({
+      fullName: dto.fullName,
+      studentId: dto.studentId,
+      email: dto.email,
+      department: dto.department,
+      eventId: dto.eventId,
+      ticketId: `CP-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: 'validated',
+      checkedIn: true,
+      checkedInAt: new Date(),
+    });
+
+    const saved = await this.registrationRepository.save(registration);
+
+    // Update registered count
+    await this.eventRepository.update(dto.eventId, {
+      registeredCount: event.registeredCount + 1,
+    });
+
+    return saved;
   }
 }

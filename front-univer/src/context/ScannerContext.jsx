@@ -6,17 +6,25 @@ export { ScannerContext };
 
 export function ScannerProvider({ children }) {
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [scannerEventId, setScannerEventId] = useState(null);
+    const [lastCheckIn, setLastCheckIn] = useState(null); // { registrationId, timestamp }
 
-    const openScanner = useCallback(() => {
+    const openScanner = useCallback((eventId = null) => {
+        setScannerEventId(eventId);
         setIsScannerOpen(true);
     }, []);
 
     const closeScanner = useCallback(() => {
         setIsScannerOpen(false);
+        setScannerEventId(null);
+    }, []);
+
+    const notifyCheckIn = useCallback((registrationId) => {
+        setLastCheckIn({ registrationId, timestamp: Date.now() });
     }, []);
 
     return (
-        <ScannerContext.Provider value={{ isScannerOpen, openScanner, closeScanner }}>
+        <ScannerContext.Provider value={{ isScannerOpen, scannerEventId, openScanner, closeScanner, lastCheckIn, notifyCheckIn }}>
             {children}
         </ScannerContext.Provider>
     );
@@ -30,3 +38,4 @@ export function useScanner() {
     }
     return context;
 }
+

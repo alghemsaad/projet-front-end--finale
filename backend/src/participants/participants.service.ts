@@ -16,6 +16,7 @@ export class ParticipantsService {
   async getParticipantsByEvent(eventId: number, query?: { search?: string }) {
     const qb = this.registrationRepository
       .createQueryBuilder('reg')
+      .leftJoinAndSelect('reg.event', 'event')
       .where('reg.eventId = :eventId', { eventId });
 
     if (query?.search) {

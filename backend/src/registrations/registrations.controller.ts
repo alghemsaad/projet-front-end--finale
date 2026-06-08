@@ -10,7 +10,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { RegistrationsService } from './registrations.service';
-import { CreateRegistrationDto } from './registrations.dto';
+import { CreateRegistrationDto, QRScanDto } from './registrations.dto';
 import { JwtAuthGuard } from '../auth/guards';
 
 interface JwtPayload {
@@ -65,5 +65,11 @@ export class RegistrationsController {
   @UseGuards(JwtAuthGuard)
   async checkIn(@Param('id', ParseIntPipe) id: number) {
     return this.registrationsService.checkIn(id);
+  }
+
+  @Post('scan')
+  @UseGuards(JwtAuthGuard)
+  async scanAndRegister(@Body() dto: QRScanDto) {
+    return this.registrationsService.scanAndRegister(dto);
   }
 }

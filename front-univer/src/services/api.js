@@ -4,9 +4,7 @@ const API_BASE = '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // Removed the default 'Content-Type' header to allow axios to automatically set it for FormData
 });
 
 // Add auth token to every request
@@ -58,6 +56,7 @@ export const registrationsAPI = {
   getOne: (id) => api.get(`/registrations/${id}`),
   cancel: (id) => api.delete(`/registrations/${id}`),
   checkIn: (id) => api.post(`/registrations/${id}/checkin`),
+  scan: (data) => api.post('/registrations/scan', data),
 };
 
 // ====== PARTICIPANTS ======
